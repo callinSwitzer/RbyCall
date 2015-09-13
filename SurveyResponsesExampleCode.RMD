@@ -1,0 +1,183 @@
+---
+title: "Survey Analysis"
+author: "Callin Switzer"
+date: "September 11, 2015"
+output: html_document
+---
+
+#### Read in data
+```{r}
+#direct <- file.choose() # handy way to change directory
+direct <- "/Users/callinswitzer/Dropbox/Harvard/RByCallin/R Course for OEB (Responses) - Form Responses 1.csv"
+surv <- read.csv(direct, stringsAsFactors = FALSE)
+```
+
+#### Find how many people responded
+```{r}
+nrow(surv)
+```
+
+Great! This shows that `r nrow(surv)` people responded!
+
+#### Find what time works best for folks
+```{r}
+# separate the possible times into a single vector
+TIMES <- unlist(strsplit(surv$What.times.would.work.for.you.to.participate., split = ", "))
+
+# make it a data frame, so we can plot it with ggplot
+TimesDF <- data.frame(TimePref = TIMES)
+library(ggplot2) # load library
+
+# set the levels, to reorder the bars, tallest being on the left
+TimesDF$TimePref <- factor(TimesDF$TimePref, levels = names(sort(table(TimesDF$TimePref), 
+                               decreasing=TRUE)))
+
+# plot it
+aa <- ggplot(TimesDF, aes(x = TimePref)) + 
+     geom_bar() + #barplot
+     theme_bw() + # black and white theme
+     theme(axis.text.x=element_text(angle=45, hjust = 1)) # rotate text on x axis
+aa
+```
+This plot is okay, but I'll fix it up a bit.
+
+
+#### define a custom theme for plotting
+```{r}
+library(grid) # for the unit() function
+my.theme <- theme_bw() + 
+               theme(plot.background = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.border = element_blank(),
+                    axis.line = element_blank(),
+                    axis.text.y = element_text(size=10),
+                    axis.ticks.length=unit(-0.15, "cm"),
+                    axis.ticks.margin=unit(0.4, "cm"), 
+                    legend.title=element_blank(), 
+                    legend.position = "none", 
+                    legend.justification = c(1, 1),
+                    axis.ticks.y = element_line(),
+                    axis.text.x=element_text(angle=45, hjust = 1), 
+                    axis.ticks.x = element_blank(), 
+                    plot.margin = unit(c(2,1,1,1), "cm")) 
+```
+
+
+#### make some plots
+```{r, tidy=TRUE}
+# make a plot with weird colors
+plot1 <- ggplot(TimesDF, aes(x = TimePref)) + 
+     geom_bar(alpha = 0.8)      
+     
+p1 <- plot1 +  my.theme + labs(x = "Time Preferences", y = "Frequency")
+p1
+
+# save plot
+ggsave("timePrefs.png", p1, width = 10, height = 8)
+```
+
+
+#### find who can and can't come on 2nd most popular day (Tuesday)
+```{r}
+# scrample names, for PRIVACY!
+NameScramble <- function(o) paste(sample(unlist(strsplit(surv$Name., split = "")), size = rpois(1, lambda = 14)), collapse = "")
+surv$Name. <- replicate(nrow(surv), expr = NameScramble())
+
+WhoCanCome <- grepl(pattern = levels(TimesDF$TimePref)[2], x = surv$What.times.would.work.for.you.to.participate.)
+
+# here are the people who can come
+surv$Name.[ WhoCanCome]
+
+# find who cannot come
+surv$Name.[!WhoCanCome]
+```
+
+
+# visualize people's experience with R
+```{r}
+# visualize experience
+lvs <- levels(factor(surv$How.would.you.rate.your.experience.with.coding.in.R.))
+surv$How.would.you.rate.your.experience.with.coding.in.R. <- factor(surv$How.would.you.rate.your.experience.with.coding.in.R., levels = lvs[c(3,1,4,2)])
+
+
+expPlot <- ggplot(surv, aes(x = How.would.you.rate.your.experience.with.coding.in.R.)) + 
+     geom_bar() + 
+     my.theme + 
+     scale_y_continuous(expand = c(0,0))
+expPlot
+
+# save the plot
+ggsave("ExpPlot.png", expPlot, width = 10, height = 8)
+```
+
+
+#### plot most commonly used words that excite people about R
+```{r}
+excite <- surv$What.are.you.most.excited.to.learn..using.R.
+#split by space or return
+wordsUsed <- (unlist(strsplit(excite, split = " |\n")))
+
+
+# remove punctuation 
+wdsCln <- tolower(gsub("[[:punct:]]", replacement = "", x = wordsUsed))
+
+# remove blanks, and useless words. 
+wdsCln <- data.frame(wds = wdsCln[wdsCln != ""])
+articles <- c("to", "and", "a", "of", "for", "the", "in", "with", "be", "also", "some", "as", "so", "at", "although", "this", "all", 'it', "but", "is", "i", "very", "that", "would", "am", "really", "about")
+wdc <- wdsCln$wds[!(wdsCln$wds %in% articles)]
+
+# get top 25 words
+wrdTab <- sort(table(wdc), decreasing = TRUE)[1:25]
+
+# make a data frame
+wrdDF <- data.frame(BuzzWords = wdc[wdc %in% names(wrdTab)])
+
+# relevel the factor so that the most popular graphs to the left side
+wrdDF <- within(wrdDF, 
+                BuzzWords <- factor(BuzzWords, levels = names(wrdTab)))
+
+# plot it
+LearnPlot <- ggplot(wrdDF, aes(x=BuzzWords)) + 
+     geom_bar(alpha = 0.9) + 
+     my.theme + 
+     theme(axis.ticks.x = element_blank()) + 
+     scale_y_continuous(expand = c(0,0)) + 
+     labs(x = "Words used to describe interest", y = "Frequency")
+     
+LearnPlot
+
+# save the plot 
+ggsave(filename = "LearnPlot.png", plot = LearnPlot, width = 10, height = 8)
+```
+
+#### Make a map to show people where to go!
+```{r}
+# HUH coordinates
+coords <- c(42.379007, -71.114572)
+# loading the required packages
+library(ggmap)
+
+# make a data frame
+df <- data.frame(lat = coords[1], lon = coords[2])
+
+# getting the map
+mapHUH <- get_map(location = c(lon = mean(df$lon), lat = mean(df$lat)), zoom = 18,
+                      maptype = "hybrid", scale = 2)
+
+# plotting the map with some points on it
+m1 <- ggmap(mapHUH) +
+     geom_point(data = df, aes(x = lon, y = lat),  shape = 18 , size = 10, color = "red") +
+     guides(fill=FALSE, alpha=FALSE, size=FALSE)
+m1
+
+# save
+ggsave("MapToHUH.png", m1, width = 5, height = 5)
+```
+
+
+```{r, eval = F, echo = F}
+# print out email addresses for interested parties
+paste(surv$Preferred.Email.Adress., collapse = ", ")
+is.character("bob")
+```
