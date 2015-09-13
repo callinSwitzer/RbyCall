@@ -5,3 +5,27 @@ date: "September 13, 2015"
 output: html_document
 ---
 
+1.      Install R and R studio on your computer
+To download R, you go to this webpage: https://cran.r-project.org/
+There, you can get both the Mac and Windows versions.
+
+You can download R studio here: https://www.rstudio.com/
+
+Once you have both installed, you should (hopefully) be able to click on RStudio, which will run R through a nice user interface.
+
+
+
+2.      Customize RStudio to make it how you like it
+3.      Use R as a calculator
+4.      Write an R script
+5.      Comment your code
+6.      Assign values to variables
+7.      Use different data types – factor, character, numeric, logical
+8.      Use different data structures – vector, matrix, array, list, data frame
+9.      Use pre-written functions to find the characteristics of variables (length, names, etc.)
+10.   Import your data into R
+11.   Set and get your working directory
+12.   Navigate your data, using “square bracket” notation and “$” notation.
+13.   Quickly visualize your data (using car::scatterplotMatrix() and plot())
+14.   Manipulate your data (sub setting with logical statements, cleaning data, making calculations with a data frame)
+15.   Export data 
