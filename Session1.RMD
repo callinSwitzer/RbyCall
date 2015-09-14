@@ -5,27 +5,413 @@ date: "September 13, 2015"
 output: html_document
 ---
 
-1.      Install R and R studio on your computer
-To download R, you go to this webpage: https://cran.r-project.org/
-There, you can get both the Mac and Windows versions.
+# 1. Install R and R studio on your computer
+          
+*To download R, you go to this webpage: https://cran.r-project.org/ There, you can get both the Mac and Windows versions.
+          
+*You can download R studio here: https://www.rstudio.com/
+          
+*Once you have both installed, you should (hopefully) be able to click on RStudio, which will run R through a nice user interface.
 
-You can download R studio here: https://www.rstudio.com/
+### Check to see what version you have:
+```{r}
+version
+```
 
-Once you have both installed, you should (hopefully) be able to click on RStudio, which will run R through a nice user interface.
+# 2. Customize RStudio to make it how you like it
+Preferences -> General -> save workspace to .RData upon exit -> Never
+
+Color
+
+Tabs, etc
+
+# 3. Use R as a calculator
+```{r}
+3 + 5
+exp(44)
+log(90)
+1:5 + 3
+3 > 5
+```
+
+# 4. Write an R script
+File -> New File -> R Script
+
+# 5. Comment your code
+
+"#"" is the comment character
+
+Comments won't be evaluated
+```{r}
+#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
+# 4 + 3
+4 + 3
+```
+
+# 6. Assign values to variables
+```{r}
+var1 <- "Hi"
+var2 <- 4
+var3 <- "Work that up-do!"
+var4 <- matrix(data = sample(x = 1:100), ncol = 10)
+
+var1
+var2
+var3
+var4
+
+# matrix multiplication
+var4 %*% matrix(1:10, ncol = 1)
+
+# matrix inverting
+solve(var4) 
+
+# matrix transpose
+t(var4)
+
+```
+
+# 7. Use different data types – factor, character, numeric, logical
+```{r}
+# factors
+factor1 <- factor("a")
+class(factor1)
+
+# Character / Strings
+## often, a sequence of characters is called a string, but R doesn't really differentiate
+ch1 <- "Hi" # quotes
+class(ch1)
+
+ch2 <- "4" # quotes mean characters
+class(ch2)
+
+# Numeric
+num1 <- 4
+class(num1)
+
+num2 <- as.numeric(ch2)
+class(num2)
+
+# Logical
+logic1 <- TRUE
+class(logic1)
+
+logic2 <- FALSE
+class(logic2)
+
+logic3 <- as.logical(1) # can convert 1 and 0 to TRUE / FALSE
+logic3
+
+# NULL
+n1 <- NULL
+class(n1)
+
+# Side Note:
+# factors can be confusing
+factor1 <- factor(x = 0)
+as.numeric(factor1) # weird...
+
+# here's why:
+f2 <- factor(c("A", "B", "C", "D", "A", "D"))
+f2
+as.numeric(f2) # note that R indexes, starting with 1, instead of 0
+
+# here's how to convert factors to numbers exactly
+as.numeric(as.character(factor1)) # better
+```
+
+
+# 8. Use different data structures – vector, matrix, array, list, data frame
+
+There are some other structures, like tables, but we'll skip that for now.
+
+### Vectors
+```{r}
+# Vectors are one dimensional arrays with one type of data (i.e. can't mix logical and character)
+# In math, we often write them like this: < 1, 3, 4 >
+# In R, we "concatenate" individual elements together to make vectors
+
+vec1 <- c(1, 3, 4)
+vec1
+
+# get info about our variable
+str(vec1)
+class(vec1)
+mode(vec1)
+length(vec1)
+summary(vec1)
+
+is.vector(vec1)
+is.atomic(vec1)
+
+## vectors can be different data types (but not factors, since they have levels)
+# logical vector
+lv1 <- c(TRUE, TRUE, FALSE, FALSE, TRUE)
+class(lv1)
+str(lv1)
+is.vector(lv1)
+
+# Character vector
+cv1 <- c("Hi", "Everyone!")
+cv1
+class(cv1)
+str(cv1)
+length(cv1)
+is.vector(lv1)
+
+# can't have factor vectors
+fv1 <- as.factor(cv1)
+fv1
+is.vector(fv1)
+
+```
+
+### Matrix
+```{r}
+# matrices are for single data types
+m1 <- matrix(data = sample(1:36), nrow = 6)
+m1 # numeric matrix
+mode(m1)
+class(m1)
+
+# character matrix
+chars <- sample(letters, 36, replace = TRUE)
+chars
+matrix(chars, nrow = 6)
+
+# logical matrix
+logic4 <- c(TRUE, FALSE, TRUE, TRUE)
+matrix(logic4, nrow = 2)
+matrix(logic4, nrow = 2, byrow = TRUE) # input by rows, rather than columns
+
+# matrix() converts factors to characters
+factChars <- as.factor(chars)
+factChars
+factM1<- matrix(factChars, nrow = 6)
+factM1
+mode(factM1)
+
+```
+
+### Arrays are like stacks of matrices
+```{r}
+m2 <- matrix(rep(2, 36), nrow = 6)
+
+array(data = c(m1, m2), dim = c(6,6,2))
+```
+
+
+### Lists can contain anything!
+navigate lists wiht double brackets -- [[ ... ]]
+```{r}
+l1 <- list(n1, logic2, m2, factM1, factChars, num2)
+l1
+
+l1[[1]]
+l1[[4]]
+
+```
+
+### Data frames are lists of vectors (or factors) that are all the same length
+
+Data frames are usually organized by their columns
+Data frames can have factors, numbers, characters, etc.
+```{r}
+df1 <- as.data.frame(m1)
+df1
+
+# a little of what is to come
+# special data frame navigation with "$"
+df1$V1
+mode(df1$V1)
+class(df1$V1)
+
+# proof that data frames are lists -- you can use [[ ... ]]
+df1[[1]]
+df1[["V1"]] # can use column names to navigat them
+df1["V1"] # using single brackets might not get you what you want
+mode(df1["V1"]) # not a vector
+df1[, "V1"] # if you put a comma in it works?  More on this later!
+mode(df1[["V1"]])
+```
+
+
+# 9. Use pre-written functions to find the characteristics of variables (length, names, etc.)
+```{r}
+# let's start with a more interesting data frame
+df1$V1 <- as.factor(df1$V1) # convert to factor
+
+# add a column to df
+df1$V7 <- sample(c(TRUE, FALSE), replace = TRUE, size = nrow(df1))
+
+head(df1)
+summary(df1)
+str(df1)
+class(df1)
+mode(df1)
+
+# get number of columns
+length(df1) 
+ncol(df1)
+
+# get number or rows
+nrow(df1) 
+length(df1$V1)
+
+# get names of columns
+colnames(df1)
+names(df1)
+
+# change column names
+colnames(df1) <- c("One", "Two", "Cat", "Foo", "Dog", "Bar", "Moo")
+head(df1)
+```
+
+# 10.   Import your data into R
+You can click "Import Dataset", or write the code yourself
+```{r}
+## Here is some of my unpublished data -- if you publish it, please include me as an author!
+## but seriously, please don't share.
+# flowerFile <- file.choose() 
+
+flowerFile <- "/Users/callinswitzer/Dropbox/Harvard/RByCallin/Session1/FlowerPollenExperiment-ExampleRClass.csv"
+
+flr <- read.csv(flowerFile)
+head(flr)
+
+## you can also import directly from a web URL
+# this is a dataset about rats from crawley book
+URL <- "http://nature.berkeley.edu/~casterln/crawley/rats.txt"
+rats <- read.csv(URL)
+head(rats) # not quite right
+
+rats <- read.csv(URL, sep = "\t")
+head(rats)
+```
+
+# 11.   Set and get your working directory
+Session -> Set Working Directory -> Choose Directory
+```{r}
+getwd() # get working directory
+
+dir() # print what's in your directory
+
+setwd("Session1") # can set a new director by typing a folder in your current wd.
+getwd()
+
+setwd("..") # goes "up" in your directory
+getwd()
+
+```
+
+# 12. Navigate your data, using “square bracket” notation and “$” notation.
+```{r}
+head(flr)
+
+head(flr["frameRate"]) # this returns a data frame, which we often don't want
+flr[["frameRate"]][1:10] # this returns a vector, first 10 items
+
+
+# if you want a new data frame with a subset of columns
+smDF <- flr[c("frameRate", "flowerNum")]
+head(smDF)
+# another possible way
+smDF <- flr[, c("frameRate", "flowerNum")] # [rows, columns]
+head(smDF)
+# another way
+smDF <- flr[, c(19,1)] # getting all rows, columns 19 and 1
+head(smDF)
+
+# if you just want a single column from your data frame
+shutter <- flr$shutter
+shutter[1:10] # gives first 10 items from the "shutter" variable
+```
+
+# 13. Quickly visualize your data (using car::scatterplotMatrix() and plot())
+```{r}
+plot(x = flr$humidity, y=flr$temp)
+
+colnames(flr)
+#install.packages("car")
+car::scatterplotMatrix(flr[c("humidity", "temp", "slope", "int")])
+```
+
+# 14. Manipulate your data (sub setting with logical statements, cleaning data, making calculations with a data frame)
+```{r}
+# select rows, all columns
+FewRows <- flr[10:20, ]
+FewRows
+
+# select rows where daysOpen == 1, all columns
+d1 <- flr[flr$daysOpen == 1, ]
+head(d1)
+
+# select rows where daysOpen does not = 1, and distance == 1
+d1d1 <- flr[flr$daysOpen != 1 & flr$distance == 1, ]
+head(d1d1)
+
+
+# cleaning data
+hist(flr$slope); rug(flr$slope)
+
+# say we want to drop the points where slope > 0.12
+sub1 <- flr[flr$slope < 0.12, ]
+hist(sub1$slope); rug(sub1$slope)
+
+# say we want to calculate a new measurement that is a combination of slope + int
+flr$NewStat <- flr$slope + flr$int
+head(flr$NewStat)
+
+# or this will work
+flr$NewStat1 <- with(flr, slope + int)
+head(flr$NewStat1)
+
+# say we want to change one of the variable types in our data frame
+class(flr$daysOpen)
+flr$daysOpen <- as.factor(flr$daysOpen)
+class(flr$daysOpen)
+# or this will work
+class(flr$flowerNum)
+flr <- within(flr, flowerNum <- as.factor(flowerNum))
+class(flr$flowerNum)
+
+
+# calculate averages by individual
+# say we want average glycogen for each individual
+summary(rats)
+tapply(X = rats$Glycogen, FUN = mean, INDEX = rats$Rat)
+
+# calcuate mean by treatment and individual
+tapply(X = c(rats$Glycogen), FUN = mean, INDEX = interaction(rats$Rat, rats$Treatment))
+
+
+tab1 <- tapply(X = flr$slope, INDEX = flr$trt, FUN = mean)
+class(tab1)
+mode(tab1)
+
+# tabulate your data (get counts)
+xt1 <- xtabs(formula = ~trt, data = flr)
+xt1
+
+# convert to data frame for easy saving
+tab1 <- as.data.frame(tab1)
+
+
+```
+
+# 15. Export data
+```{r}
+# Write text files
+# can also use write.csv()
+write.table(x = tab1, file = "Tab1.csv", sep = ",",  col.names = FALSE)
+
+# saving plots
+pdf(file = "plot1.pdf", width = 5, height = 4)
+plot(x = flr$humidity, y=flr$temp)
+dev.off()
+
+# or just export with the "Export" button 
+```
 
 
 
-2.      Customize RStudio to make it how you like it
-3.      Use R as a calculator
-4.      Write an R script
-5.      Comment your code
-6.      Assign values to variables
-7.      Use different data types – factor, character, numeric, logical
-8.      Use different data structures – vector, matrix, array, list, data frame
-9.      Use pre-written functions to find the characteristics of variables (length, names, etc.)
-10.   Import your data into R
-11.   Set and get your working directory
-12.   Navigate your data, using “square bracket” notation and “$” notation.
-13.   Quickly visualize your data (using car::scatterplotMatrix() and plot())
-14.   Manipulate your data (sub setting with logical statements, cleaning data, making calculations with a data frame)
-15.   Export data 
